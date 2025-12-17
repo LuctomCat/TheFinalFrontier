@@ -103,9 +103,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyType: 1
-  maxHealth: 3
-  moveSpeed: 1
+  baseHealth: 1
+  moveSpeed: 2.5
   damageToBarricade: 1
+  deathSound: {fileID: 0}
   targetX: 8
 --- !u!50 &4950662937662861566
 Rigidbody2D:

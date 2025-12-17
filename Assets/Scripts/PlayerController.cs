@@ -1,29 +1,32 @@
 using UnityEngine;
+
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    [Tooltip("Units per second")]
     public float moveSpeed = 5f;
-    [Tooltip("Min and max Y positions player can travel")]
     public float minY = -4f;
     public float maxY = 4f;
-    [Tooltip("X position (world) where player is locked. Keep on right half.")]
     public float clampX = 7.5f;
 
     [Header("Shooting")]
     public GameObject bulletPrefab;
-    [Tooltip("Where bullets originate — set an empty child transform over the barricade.")]
     public Transform firePoint;
-    public float fireRate = 0.3f; // fire rate -----
+    public float fireRate = 0.3f;
 
-    float fireTimer = 0f;
+    [Header("Reload")]
+    public int maxShots = 10;
+    public float reloadTime = 2f;
+
+    float fireTimer;
+    int shotsRemaining;
+    bool reloading;
+
+    public bool IsReloading => reloading;
 
     void Start()
     {
-        // sets starting position.
-        Vector3 p = transform.position;
-        p.x = clampX;
-        transform.position = p;
+        shotsRemaining = maxShots;
+        transform.position = new Vector3(clampX, transform.position.y, 0f);
     }
 
     void Update()
@@ -34,27 +37,36 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovement()
     {
-        float v = 0f;
-        if (Input.GetKey(KeyCode.W)) v = 1f;
-        if (Input.GetKey(KeyCode.S)) v = -1f;
-
+        float v = Input.GetKey(KeyCode.W) ? 1f : Input.GetKey(KeyCode.S) ? -1f : 0f;
         Vector3 pos = transform.position;
-        pos.y += v * moveSpeed * Time.deltaTime;
-        pos.y = Mathf.Clamp(pos.y, minY, maxY);
-        pos.x = clampX; // keep locked to the correct half of the screen
+        pos.y = Mathf.Clamp(pos.y + v * moveSpeed * Time.deltaTime, minY, maxY);
+        pos.x = clampX;
         transform.position = pos;
     }
 
     void HandleShooting()
     {
         fireTimer -= Time.deltaTime;
-        if (Input.GetKey(KeyCode.Space) && fireTimer <= 0f)
+        if (reloading || fireTimer > 0f) return;
+
+        if (shotsRemaining <= 0)
+        {
+            reloading = true;
+            Invoke(nameof(FinishReload), reloadTime);
+            return;
+        }
+
+        if (Input.GetKey(KeyCode.Space))
         {
             fireTimer = fireRate;
-            if (bulletPrefab != null && firePoint != null)
-            {
-                Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-            }
+            shotsRemaining--;
+            Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         }
+    }
+
+    void FinishReload()
+    {
+        shotsRemaining = maxShots;
+        reloading = false;
     }
 }

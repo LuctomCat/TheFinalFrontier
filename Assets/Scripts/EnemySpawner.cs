@@ -5,7 +5,7 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Spawner Settings")]
-    public Transform[] spawnPoints; // spawns off screen
+    public Transform[] spawnPoints;
     public GameObject standardPrefab;
     public GameObject fastPrefab;
     public GameObject fatPrefab;
@@ -19,10 +19,8 @@ public class EnemySpawner : MonoBehaviour
     [Header("Instance Limits")]
     public int maxSimultaneousEnemies = 20;
 
-    // keeps track of spawned instances
     List<GameObject> activeEnemies = new List<GameObject>();
 
-    // reference to GameManager for scaling health
     public GameManager gameManager;
 
     void Start()
@@ -34,34 +32,29 @@ public class EnemySpawner : MonoBehaviour
     {
         while (true)
         {
-            // wait for next group
             yield return new WaitForSeconds(groupInterval);
 
-            // NEW: Safety check so array never causes crashes
             if (spawnPoints == null || spawnPoints.Length == 0)
             {
                 Debug.LogError("EnemySpawner ERROR: No spawn points assigned!");
-                continue; // prevents a crash but keeps game running
+                continue;
             }
 
-            // do not spawn if too many enemies present
             CleanActiveList();
+
             if (activeEnemies.Count >= maxSimultaneousEnemies)
                 continue;
 
-            // choose how many to spawn this group
             int toSpawn = Random.Range(groupMin, groupMax + 1);
-
-            // spawn at a randomly chosen spawn point
             Transform sp = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
-            // Slight vertical offsets to avoid stacking
             for (int i = 0; i < toSpawn; i++)
             {
                 if (activeEnemies.Count >= maxSimultaneousEnemies) break;
 
                 Vector3 pos = sp.position;
-                pos.y += Random.Range(-1f, 1f) + i * 0.3f; // small spacing
+                pos.y += Random.Range(-1f, 1f) + i * 0.3f;
+
                 GameObject prefab = PickEnemyPrefabByProbability();
                 if (prefab == null) continue;
 
@@ -70,7 +63,6 @@ public class EnemySpawner : MonoBehaviour
 
                 activeEnemies.Add(go);
 
-                // tiny delay between spawns in same group so they don't overlap at same frame
                 yield return new WaitForSeconds(0.08f);
             }
         }
@@ -79,9 +71,9 @@ public class EnemySpawner : MonoBehaviour
     GameObject PickEnemyPrefabByProbability()
     {
         float roll = Random.value;
-        if (roll < 0.6f) return standardPrefab; // 60%
-        if (roll < 0.85f) return fastPrefab;    // 25%
-        return fatPrefab;                       // 15%
+        if (roll < 0.6f) return standardPrefab;
+        if (roll < 0.85f) return fastPrefab;
+        return fatPrefab;
     }
 
     void SetupEnemy(GameObject enemyGO)
@@ -89,19 +81,16 @@ public class EnemySpawner : MonoBehaviour
         Enemy enemy = enemyGO.GetComponent<Enemy>();
         if (enemy == null) return;
 
-        // set targetX to where barricade is
-        enemy.targetX = gameManager != null ? gameManager.barricadeTargetX : 8f;
+        // Set target X to barricade
+        if (gameManager != null)
+            enemy.targetX = gameManager.barricadeTargetX;
 
-        // Scale hp and speed using GameManager difficulty multiplier
-        enemy.maxHealth = Mathf.CeilToInt(enemy.maxHealth * gameManager.GetHealthMultiplier());
-        enemy.moveSpeed *= gameManager.GetSpeedMultiplierForEnemy(enemy.enemyType);
+        // Use existing values w/out scaling
 
-        // register to notify when destroyed
         EnemyWatcher watcher = enemyGO.AddComponent<EnemyWatcher>();
         watcher.spawner = this;
     }
 
-    // called by EnemyWatcher when an enemy is destroyed
     public void NotifyEnemyDestroyed(GameObject enemy)
     {
         if (activeEnemies.Contains(enemy))
@@ -113,7 +102,6 @@ public class EnemySpawner : MonoBehaviour
         activeEnemies.RemoveAll(x => x == null);
     }
 
-    // helper class attached at runtime to watch destroy
     class EnemyWatcher : MonoBehaviour
     {
         public EnemySpawner spawner;
