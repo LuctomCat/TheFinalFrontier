@@ -105,7 +105,7 @@ MonoBehaviour:
   speed: 20
   lifeTime: 0.75
   damage: 2
-  hitSound: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: 0f3f6d4acab8e4747b1074276bc38741, type: 3}
 --- !u!61 &1704661133761544322
 BoxCollider2D:
   m_ObjectHideFlags: 0

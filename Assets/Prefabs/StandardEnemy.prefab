@@ -106,7 +106,7 @@ MonoBehaviour:
   baseHealth: 4
   moveSpeed: 1.5
   damageToBarricade: 2
-  deathSound: {fileID: 0}
+  deathSound: {fileID: 8300000, guid: b147dca387bc63f458746c4b49a79a74, type: 3}
   targetX: 8
 --- !u!50 &5012196892032470742
 Rigidbody2D:

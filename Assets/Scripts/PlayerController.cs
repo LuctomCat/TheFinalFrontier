@@ -17,6 +17,11 @@ public class PlayerController : MonoBehaviour
     public int maxShots = 10;
     public float reloadTime = 2f;
 
+    // SFX
+    [Header("Audio")]
+    public AudioClip fireSound;
+    public AudioClip reloadSound;
+
     float fireTimer;
     int shotsRemaining;
     bool reloading;
@@ -52,6 +57,9 @@ public class PlayerController : MonoBehaviour
         if (shotsRemaining <= 0)
         {
             reloading = true;
+
+            PlaySFX(reloadSound);
+
             Invoke(nameof(FinishReload), reloadTime);
             return;
         }
@@ -60,7 +68,10 @@ public class PlayerController : MonoBehaviour
         {
             fireTimer = fireRate;
             shotsRemaining--;
+
             Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+
+            PlaySFX(fireSound);
         }
     }
 
@@ -68,5 +79,17 @@ public class PlayerController : MonoBehaviour
     {
         shotsRemaining = maxShots;
         reloading = false;
+    }
+
+    // SFX Contrl Panel
+    void PlaySFX(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        float volume = SoundManager.Instance != null
+            ? SoundManager.Instance.GetSFXVolume()
+            : 1f;
+
+        AudioSource.PlayClipAtPoint(clip, transform.position, volume);
     }
 }
